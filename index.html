@@ -23,7 +23,7 @@
     body {
       margin: 0;
       min-height: 100%;
-      padding: 24px 16px 40px;
+      padding: 16px 12px 28px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
                    "Noto Sans KR", Arial, sans-serif;
       background: var(--bg);
@@ -34,30 +34,30 @@
 
     .container {
       width: 100%;
-      max-width: 540px;
+      max-width: 500px;
       margin: 0 auto;
     }
 
     h1 {
-      margin: 8px 0 22px;
-      font-size: 30px;
+      margin: 5px 0 14px;
+      font-size: 24px;
       line-height: 1.2;
     }
 
     .settings,
     .timer-card {
       background: var(--card);
-      border-radius: 24px;
+      border-radius: 19px;
     }
 
     .settings {
-      padding: 20px;
-      margin-bottom: 18px;
+      padding: 15px 16px;
+      margin-bottom: 12px;
     }
 
     .settings-title {
-      margin-bottom: 16px;
-      font-size: 18px;
+      margin-bottom: 10px;
+      font-size: 15px;
       font-weight: 800;
       text-align: left;
     }
@@ -66,31 +66,31 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(160px, 210px);
       align-items: center;
-      gap: 14px;
-      padding: 9px 0;
+      gap: 10px;
+      padding: 5px 0;
       text-align: left;
     }
 
     .setting-label {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 700;
     }
 
     .duration-pickers {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      gap: 6px;
     }
 
     select {
       width: 100%;
-      min-height: 48px;
-      padding: 0 10px;
+      min-height: 40px;
+      padding: 0 7px;
       border: 1px solid var(--line);
-      border-radius: 13px;
+      border-radius: 10px;
       background: #fff;
       color: var(--text);
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 700;
       text-align: center;
       text-align-last: center;
@@ -102,37 +102,35 @@
     }
 
     .timer-card {
-      padding: 28px 20px 24px;
-    }
-
-    #phase {
-      min-height: 24px;
-      margin-bottom: 8px;
-      color: var(--muted);
-      font-size: 18px;
-      font-weight: 700;
+      padding: 20px 16px 17px;
     }
 
     #setDisplay {
-      min-height: 34px;
-      font-size: 25px;
+      min-height: 27px;
+      margin-top: 2px;
+      font-size: 20px;
       font-weight: 800;
     }
 
     #timeDisplay {
-      margin: 28px 0 22px;
+      margin: 18px 0 15px;
       font-size: clamp(64px, 19vw, 98px);
       line-height: .95;
       font-weight: 850;
       letter-spacing: -4px;
       font-variant-numeric: tabular-nums;
+      transition: color .2s ease;
+    }
+
+    #timeDisplay.rest-time {
+      color: #f5b700;
     }
 
     .progress-bg {
       width: 100%;
-      height: 10px;
+      height: 8px;
       overflow: hidden;
-      margin: 22px 0 18px;
+      margin: 14px 0 11px;
       border-radius: 999px;
       background: var(--soft);
     }
@@ -145,28 +143,28 @@
     }
 
     #status {
-      min-height: 50px;
+      min-height: 38px;
       display: flex;
       align-items: center;
       justify-content: center;
       color: #555;
-      font-size: 16px;
-      line-height: 1.45;
+      font-size: 14px;
+      line-height: 1.35;
     }
 
     .buttons {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 16px;
+      gap: 8px;
+      margin-top: 11px;
     }
 
     button {
       width: 100%;
-      min-height: 56px;
+      min-height: 46px;
       border: none;
-      border-radius: 16px;
-      font-size: 18px;
+      border-radius: 13px;
+      font-size: 16px;
       font-weight: 800;
       cursor: pointer;
     }
@@ -194,16 +192,16 @@
     }
 
     .small-text {
-      margin-top: 17px;
+      margin-top: 11px;
       color: #8e8e93;
-      font-size: 12px;
+      font-size: 10px;
       line-height: 1.5;
     }
 
     @media (max-width: 390px) {
       .setting-row {
         grid-template-columns: 1fr;
-        gap: 7px;
+        gap: 5px;
       }
 
       .duration-pickers {
@@ -290,7 +288,6 @@
     </section>
 
     <section class="timer-card" aria-label="타이머">
-      <div id="phase">준비</div>
       <div id="setDisplay">세트 1 / 2</div>
       <div id="timeDisplay">03:00</div>
 
@@ -320,9 +317,9 @@
    기본 설정값
 ===================================================== */
 
-const DEFAULT_MINUTES = 5;   // 세트 시간: 분
+const DEFAULT_MINUTES = 3;   // 세트 시간: 분
 const DEFAULT_SECONDS = 0;   // 세트 시간: 초
-const DEFAULT_LOOPS = 6;     // 반복 횟수
+const DEFAULT_LOOPS = 10;     // 반복 횟수
 const DEFAULT_REST = 10;     // 세트 간 휴식: 초
 
 /* =====================================================
@@ -335,7 +332,6 @@ const loopSelect = document.getElementById("loopSelect");
 const restSelect = document.getElementById("restSelect");
 const voiceSelect = document.getElementById("voiceSelect");
 
-const phaseDisplay = document.getElementById("phase");
 const setDisplay = document.getElementById("setDisplay");
 const timeDisplay = document.getElementById("timeDisplay");
 const statusDisplay = document.getElementById("status");
@@ -530,7 +526,6 @@ function refreshPreview() {
 
   updateTime(duration);
   setDisplay.textContent = `세트 1 / ${loops}`;
-  phaseDisplay.textContent = "준비";
   progress.style.width = "0%";
 }
 
@@ -548,13 +543,13 @@ function lockSettings(lock) {
 
 function startWorkSet() {
   mode = "work";
+  timeDisplay.classList.remove("rest-time");
   announcedElapsedMinutes.clear();
 
   phaseTotalSeconds = durationSeconds;
   remainingSeconds = durationSeconds;
   endTime = Date.now() + durationSeconds * 1000;
 
-  phaseDisplay.textContent = "세트 진행";
   setDisplay.textContent = `세트 ${currentSet} / ${totalLoops}`;
   updateTime(durationSeconds);
   progress.style.width = "0%";
@@ -564,12 +559,12 @@ function startWorkSet() {
 
 function startRest() {
   mode = "rest";
+  timeDisplay.classList.add("rest-time");
 
   phaseTotalSeconds = restSeconds;
   remainingSeconds = restSeconds;
   endTime = Date.now() + restSeconds * 1000;
 
-  phaseDisplay.textContent = "휴식";
   setDisplay.textContent = `세트 ${currentSet - 1} 완료 · 다음 ${currentSet}세트`;
   updateTime(restSeconds);
   progress.style.width = "0%";
@@ -596,6 +591,7 @@ function completeWorkSet() {
 }
 
 function finishTimer() {
+  timeDisplay.classList.remove("rest-time");
   running = false;
   paused = false;
   mode = "finished";
@@ -603,7 +599,6 @@ function finishTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
 
-  phaseDisplay.textContent = "완료";
   setDisplay.textContent = `${totalLoops}세트 완료`;
   updateTime(0);
   progress.style.width = "100%";
@@ -753,6 +748,7 @@ function togglePause() {
 ===================================================== */
 
 function resetTimer() {
+  timeDisplay.classList.remove("rest-time");
   clearInterval(timerInterval);
   timerInterval = null;
 
@@ -770,7 +766,6 @@ function resetTimer() {
   startButton.textContent = "시작";
   pauseButton.textContent = "일시정지";
 
-  phaseDisplay.textContent = "준비";
   progress.style.width = "0%";
 
   releaseWakeLock();
