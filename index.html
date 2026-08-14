@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111111">
+  <title>반복 타이머</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #f5f5f7;
+      --card: #ffffff;
+      --text: #111111;
+      --muted: #6e6e73;
+      --line: #d2d2d7;
+      --soft: #e8e8ed;
+      --accent: #111111;
+      --danger: #c62828;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      padding: 24px 16px 40px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Noto Sans KR", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 8px 0 22px;
+      font-size: 30px;
+      line-height: 1.2;
+    }
+
+    .settings,
+    .timer-card {
+      background: var(--card);
+      border-radius: 24px;
+    }
+
+    .settings {
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .settings-title {
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 800;
+      text-align: left;
+    }
+
+    .setting-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(160px, 210px);
+      align-items: center;
+      gap: 14px;
+      padding: 9px 0;
+      text-align: left;
+    }
+
+    .setting-label {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .duration-pickers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    select {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #fff;
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 700;
+      text-align: center;
+      text-align-last: center;
+    }
+
+    select:disabled {
+      opacity: .5;
+      background: #f2f2f2;
+    }
+
+    .timer-card {
+      padding: 28px 20px 24px;
+    }
+
+    #phase {
+      min-height: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    #setDisplay {
+      min-height: 34px;
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    #timeDisplay {
+      margin: 28px 0 22px;
+      font-size: clamp(64px, 19vw, 98px);
+      line-height: .95;
+      font-weight: 850;
+      letter-spacing: -4px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress-bg {
+      width: 100%;
+      height: 10px;
+      overflow: hidden;
+      margin: 22px 0 18px;
+      border-radius: 999px;
+      background: var(--soft);
+    }
+
+    #progress {
+      width: 0%;
+      height: 100%;
+      background: var(--accent);
+      transition: width .2s linear;
+    }
+
+    #status {
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #555;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      width: 100%;
+      min-height: 56px;
+      border: none;
+      border-radius: 16px;
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    #startButton {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    #pauseButton {
+      background: var(--soft);
+      color: var(--text);
+    }
+
+    #resetButton {
+      grid-column: 1 / -1;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+    }
+
+    button:disabled {
+      opacity: .38;
+      cursor: default;
+    }
+
+    .small-text {
+      margin-top: 17px;
+      color: #8e8e93;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 390px) {
+      .setting-row {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+
+      .duration-pickers {
+        max-width: none;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000000;
+        --card: #1c1c1e;
+        --text: #f5f5f7;
+        --muted: #a1a1a6;
+        --line: #3a3a3c;
+        --soft: #2c2c2e;
+        --accent: #f5f5f7;
+      }
+
+      select {
+        background: #2c2c2e;
+        color: #f5f5f7;
+      }
+
+      select:disabled {
+        background: #252527;
+      }
+
+      #startButton {
+        color: #111;
+      }
+
+      #pauseButton,
+      #resetButton {
+        color: #f5f5f7;
+      }
+
+      #resetButton {
+        background: #1c1c1e;
+      }
+
+      #progress {
+        background: #f5f5f7;
+      }
+
+      #status {
+        color: #c7c7cc;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <h1>반복 타이머</h1>
+
+    <section class="settings" aria-label="타이머 설정">
+      <div class="settings-title">타이머 설정</div>
+
+      <div class="setting-row">
+        <div class="setting-label">세트 시간</div>
+        <div class="duration-pickers">
+          <select id="minuteSelect" aria-label="세트 시간 분"></select>
+          <select id="secondSelect" aria-label="세트 시간 초"></select>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <label class="setting-label" for="loopSelect">반복 횟수</label>
+        <select id="loopSelect"></select>
+      </div>
+
+      <div class="setting-row">
+        <label class="setting-label" for="restSelect">세트 간 휴식</label>
+        <select id="restSelect"></select>
+      </div>
+
+      <div class="setting-row">
+        <label class="setting-label" for="voiceSelect">음성 안내</label>
+        <select id="voiceSelect">
+          <option value="on">사용</option>
+          <option value="off">사용 안 함</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="timer-card" aria-label="타이머">
+      <div id="phase">준비</div>
+      <div id="setDisplay">세트 1 / 2</div>
+      <div id="timeDisplay">03:00</div>
+
+      <div class="progress-bg" aria-hidden="true">
+        <div id="progress"></div>
+      </div>
+
+      <div id="status" aria-live="polite">설정 후 시작 버튼을 눌러주세요.</div>
+
+      <div class="buttons">
+        <button id="startButton" type="button">시작</button>
+        <button id="pauseButton" type="button" disabled>일시정지</button>
+        <button id="resetButton" type="button">초기화</button>
+      </div>
+
+      <div class="small-text">
+        화면을 켜 둔 상태에서 가장 안정적으로 동작합니다.<br>
+        지원되는 브라우저에서는 실행 중 화면 자동 꺼짐을 방지합니다.
+      </div>
+    </section>
+  </main>
+
+<script>
+"use strict";
+
+/* =====================================================
+   기본 설정값
+===================================================== */
+
+const DEFAULT_MINUTES = 3;   // 세트 시간: 분
+const DEFAULT_SECONDS = 0;   // 세트 시간: 초
+const DEFAULT_LOOPS = 2;     // 반복 횟수
+const DEFAULT_REST = 10;     // 세트 간 휴식: 초
+
+/* =====================================================
+   요소
+===================================================== */
+
+const minuteSelect = document.getElementById("minuteSelect");
+const secondSelect = document.getElementById("secondSelect");
+const loopSelect = document.getElementById("loopSelect");
+const restSelect = document.getElementById("restSelect");
+const voiceSelect = document.getElementById("voiceSelect");
+
+const phaseDisplay = document.getElementById("phase");
+const setDisplay = document.getElementById("setDisplay");
+const timeDisplay = document.getElementById("timeDisplay");
+const statusDisplay = document.getElementById("status");
+const progress = document.getElementById("progress");
+
+const startButton = document.getElementById("startButton");
+const pauseButton = document.getElementById("pauseButton");
+const resetButton = document.getElementById("resetButton");
+
+/* =====================================================
+   선택 메뉴 생성
+===================================================== */
+
+// 분: 0~60분
+for (let i = 0; i <= 60; i++) {
+  const option = document.createElement("option");
+  option.value = String(i);
+  option.textContent = `${i}분`;
+  if (i === DEFAULT_MINUTES) option.selected = true;
+  minuteSelect.appendChild(option);
+}
+
+// 초: 0~59초
+for (let i = 0; i <= 59; i++) {
+  const option = document.createElement("option");
+  option.value = String(i);
+  option.textContent = `${i}초`;
+  if (i === DEFAULT_SECONDS) option.selected = true;
+  secondSelect.appendChild(option);
+}
+
+// 반복 횟수: 1~50회
+for (let i = 1; i <= 50; i++) {
+  const option = document.createElement("option");
+  option.value = String(i);
+  option.textContent = `${i}회`;
+  if (i === DEFAULT_LOOPS) option.selected = true;
+  loopSelect.appendChild(option);
+}
+
+// 휴식: 0~300초, 5초 단위
+for (let i = 0; i <= 300; i += 5) {
+  const option = document.createElement("option");
+  option.value = String(i);
+
+  if (i === 0) {
+    option.textContent = "휴식 없음";
+  } else if (i < 60) {
+    option.textContent = `${i}초`;
+  } else {
+    const min = Math.floor(i / 60);
+    const sec = i % 60;
+    option.textContent = sec === 0 ? `${min}분` : `${min}분 ${sec}초`;
+  }
+
+  if (i === DEFAULT_REST) option.selected = true;
+  restSelect.appendChild(option);
+}
+
+/* =====================================================
+   상태
+===================================================== */
+
+let totalLoops = DEFAULT_LOOPS;
+let durationSeconds = DEFAULT_MINUTES * 60 + DEFAULT_SECONDS;
+let restSeconds = DEFAULT_REST;
+
+let currentSet = 1;
+let mode = "ready"; // ready / work / rest / finished
+let running = false;
+let paused = false;
+
+let endTime = 0;
+let remainingSeconds = durationSeconds;
+let phaseTotalSeconds = durationSeconds;
+
+let timerInterval = null;
+let wakeLock = null;
+let announcedElapsedMinutes = new Set();
+
+/* =====================================================
+   공통 함수
+===================================================== */
+
+function formatTime(seconds) {
+  seconds = Math.max(0, Math.ceil(Number(seconds) || 0));
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+function updateTime(seconds) {
+  timeDisplay.textContent = formatTime(seconds);
+}
+
+function updateProgress(remaining) {
+  if (phaseTotalSeconds <= 0) {
+    progress.style.width = "0%";
+    return;
+  }
+
+  const elapsed = phaseTotalSeconds - remaining;
+  const percent = Math.min(100, Math.max(0, (elapsed / phaseTotalSeconds) * 100));
+  progress.style.width = `${percent}%`;
+}
+
+function getConfiguredDurationSeconds() {
+  return Number(minuteSelect.value) * 60 + Number(secondSelect.value);
+}
+
+function durationText(totalSeconds) {
+  const min = Math.floor(totalSeconds / 60);
+  const sec = totalSeconds % 60;
+
+  if (min > 0 && sec > 0) return `${min}분 ${sec}초`;
+  if (min > 0) return `${min}분`;
+  return `${sec}초`;
+}
+
+/* =====================================================
+   음성
+===================================================== */
+
+function speakMessage(message) {
+  console.log(message);
+  statusDisplay.textContent = message;
+
+  if (voiceSelect.value !== "on") return;
+  if (!("speechSynthesis" in window)) return;
+
+  window.speechSynthesis.cancel();
+
+  const speech = new SpeechSynthesisUtterance(message);
+  speech.lang = "ko-KR";
+  speech.rate = 1;
+  speech.pitch = 1;
+  speech.volume = 1;
+
+  window.speechSynthesis.speak(speech);
+}
+
+function cancelSpeech() {
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+/* =====================================================
+   Wake Lock
+===================================================== */
+
+async function requestWakeLock() {
+  try {
+    if ("wakeLock" in navigator && document.visibilityState === "visible") {
+      wakeLock = await navigator.wakeLock.request("screen");
+    }
+  } catch (error) {
+    console.log("Wake Lock 사용 불가:", error);
+  }
+}
+
+async function releaseWakeLock() {
+  try {
+    if (wakeLock) {
+      await wakeLock.release();
+      wakeLock = null;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+/* =====================================================
+   설정 미리보기
+===================================================== */
+
+function refreshPreview() {
+  if (running) return;
+
+  let duration = getConfiguredDurationSeconds();
+
+  // 0분 0초는 허용하지 않음
+  if (duration <= 0) {
+    secondSelect.value = "1";
+    duration = 1;
+    statusDisplay.textContent = "세트 시간은 최소 1초 이상이어야 합니다.";
+  } else {
+    statusDisplay.textContent = "설정 후 시작 버튼을 눌러주세요.";
+  }
+
+  const loops = Number(loopSelect.value);
+
+  updateTime(duration);
+  setDisplay.textContent = `세트 1 / ${loops}`;
+  phaseDisplay.textContent = "준비";
+  progress.style.width = "0%";
+}
+
+function lockSettings(lock) {
+  minuteSelect.disabled = lock;
+  secondSelect.disabled = lock;
+  loopSelect.disabled = lock;
+  restSelect.disabled = lock;
+  // 실행 중에도 음성 ON/OFF는 변경 가능하도록 유지
+}
+
+/* =====================================================
+   세트 / 휴식
+===================================================== */
+
+function startWorkSet() {
+  mode = "work";
+  announcedElapsedMinutes.clear();
+
+  phaseTotalSeconds = durationSeconds;
+  remainingSeconds = durationSeconds;
+  endTime = Date.now() + durationSeconds * 1000;
+
+  phaseDisplay.textContent = "세트 진행";
+  setDisplay.textContent = `세트 ${currentSet} / ${totalLoops}`;
+  updateTime(durationSeconds);
+  progress.style.width = "0%";
+
+  speakMessage(`세트 ${currentSet} 시작.`);
+}
+
+function startRest() {
+  mode = "rest";
+
+  phaseTotalSeconds = restSeconds;
+  remainingSeconds = restSeconds;
+  endTime = Date.now() + restSeconds * 1000;
+
+  phaseDisplay.textContent = "휴식";
+  setDisplay.textContent = `세트 ${currentSet - 1} 완료 · 다음 ${currentSet}세트`;
+  updateTime(restSeconds);
+  progress.style.width = "0%";
+
+  // 요청사항: 휴식시간 음성 알림 없음
+  statusDisplay.textContent = "휴식 중";
+}
+
+function completeWorkSet() {
+  speakMessage(`세트 ${currentSet} 완료되었습니다.`);
+
+  if (currentSet >= totalLoops) {
+    finishTimer();
+    return;
+  }
+
+  currentSet += 1;
+
+  if (restSeconds > 0) {
+    startRest();
+  } else {
+    startWorkSet();
+  }
+}
+
+function finishTimer() {
+  running = false;
+  paused = false;
+  mode = "finished";
+
+  clearInterval(timerInterval);
+  timerInterval = null;
+
+  phaseDisplay.textContent = "완료";
+  setDisplay.textContent = `${totalLoops}세트 완료`;
+  updateTime(0);
+  progress.style.width = "100%";
+
+  // 세트 완료 음성 직후 전체 완료 음성이 잘리는 것을 피하기 위해
+  // 마지막에는 전체 완료 메시지만 다시 출력
+  setTimeout(() => {
+    speakMessage("모든 타이머가 종료되었습니다.");
+  }, 500);
+
+  startButton.textContent = "다시 시작";
+  startButton.disabled = false;
+  pauseButton.disabled = true;
+
+  lockSettings(false);
+  releaseWakeLock();
+}
+
+/* =====================================================
+   경과 음성 안내
+   60초, 120초, 180초 ... 경과 시 안내
+   마지막 종료 시점과 겹치는 안내는 생략
+===================================================== */
+
+function checkElapsedAnnouncement(remaining) {
+  if (mode !== "work") return;
+
+  const elapsed = durationSeconds - remaining;
+  const elapsedWholeMinutes = Math.floor(elapsed / 60);
+
+  if (
+    elapsedWholeMinutes >= 1 &&
+    remaining > 0 &&
+    !announcedElapsedMinutes.has(elapsedWholeMinutes)
+  ) {
+    announcedElapsedMinutes.add(elapsedWholeMinutes);
+    speakMessage(`${elapsedWholeMinutes}분 경과.`);
+  }
+}
+
+/* =====================================================
+   메인 tick
+===================================================== */
+
+function tick() {
+  if (!running || paused) return;
+
+  const millisecondsRemaining = endTime - Date.now();
+  const remaining = Math.max(0, Math.ceil(millisecondsRemaining / 1000));
+
+  remainingSeconds = remaining;
+  updateTime(remaining);
+  updateProgress(remaining);
+
+  if (mode === "work") {
+    checkElapsedAnnouncement(remaining);
+  }
+
+  if (millisecondsRemaining <= 0) {
+    if (mode === "work") {
+      completeWorkSet();
+    } else if (mode === "rest") {
+      // 휴식 종료 알림 없이 바로 다음 세트 시작
+      startWorkSet();
+    }
+  }
+}
+
+/* =====================================================
+   시작
+===================================================== */
+
+async function startTimer() {
+  durationSeconds = getConfiguredDurationSeconds();
+
+  if (durationSeconds <= 0) {
+    secondSelect.value = "1";
+    durationSeconds = 1;
+  }
+
+  totalLoops = Number(loopSelect.value);
+  restSeconds = Number(restSelect.value);
+
+  currentSet = 1;
+  running = true;
+  paused = false;
+
+  // 사용자 터치 시점에 음성 엔진 활성화
+  if (voiceSelect.value === "on" && "speechSynthesis" in window) {
+    try {
+      const warmup = new SpeechSynthesisUtterance("");
+      window.speechSynthesis.speak(warmup);
+    } catch (_) {}
+  }
+
+  lockSettings(true);
+
+  startButton.disabled = true;
+  pauseButton.disabled = false;
+  pauseButton.textContent = "일시정지";
+
+  await requestWakeLock();
+
+  // 시작 메시지 이후 첫 세트 시작 메시지가 바로 덮이지 않도록
+  statusDisplay.textContent =
+    `${durationText(durationSeconds)} × ${totalLoops}회 반복`;
+
+  startWorkSet();
+
+  clearInterval(timerInterval);
+  timerInterval = setInterval(tick, 200);
+}
+
+/* =====================================================
+   일시정지 / 재개
+===================================================== */
+
+function togglePause() {
+  if (!running) return;
+
+  if (!paused) {
+    paused = true;
+
+    remainingSeconds = Math.max(
+      0,
+      Math.ceil((endTime - Date.now()) / 1000)
+    );
+
+    pauseButton.textContent = "계속";
+    statusDisplay.textContent = "일시정지되었습니다.";
+    cancelSpeech();
+    releaseWakeLock();
+  } else {
+    paused = false;
+    endTime = Date.now() + remainingSeconds * 1000;
+
+    pauseButton.textContent = "일시정지";
+    statusDisplay.textContent =
+      mode === "rest" ? "휴식 중" : `세트 ${currentSet} 진행 중`;
+
+    requestWakeLock();
+  }
+}
+
+/* =====================================================
+   초기화
+===================================================== */
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+
+  running = false;
+  paused = false;
+  mode = "ready";
+  currentSet = 1;
+
+  cancelSpeech();
+  lockSettings(false);
+
+  startButton.disabled = false;
+  pauseButton.disabled = true;
+
+  startButton.textContent = "시작";
+  pauseButton.textContent = "일시정지";
+
+  phaseDisplay.textContent = "준비";
+  progress.style.width = "0%";
+
+  releaseWakeLock();
+  refreshPreview();
+}
+
+/* =====================================================
+   이벤트
+===================================================== */
+
+minuteSelect.addEventListener("change", refreshPreview);
+secondSelect.addEventListener("change", refreshPreview);
+loopSelect.addEventListener("change", refreshPreview);
+
+startButton.addEventListener("click", startTimer);
+pauseButton.addEventListener("click", togglePause);
+resetButton.addEventListener("click", resetTimer);
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && running && !paused) {
+    requestWakeLock();
+
+    // 화면 복귀 시 실제 시각 기준으로 즉시 보정
+    tick();
+  }
+});
+
+/* =====================================================
+   시작 화면
+===================================================== */
+
+refreshPreview();
+</script>
+</body>
+</html>
